@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memory Matching Game</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f3f3f3;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+  }
+
+  #gameContainer {
+    display: grid;
+    grid-template-columns: repeat(4, 100px);
+    grid-template-rows: repeat(4, 100px);
+    gap: 10px;
+  }
+
+  .card {
+    background-color: #fff;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .card:hover {
+    transform: translateY(-5px);
+  }
+
+  .card[data-flipped="true"] {
+    background: linear-gradient(135deg, #fd9d6a, #fb7466);
+    color: #fff;
+    cursor: default;
+  }
+
+  .card[data-flipped="true"]:hover {
+    transform: none;
+  }
+
+  .message {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<div id="gameContainer">
+  <!-- Cards will be added dynamically here -->
+</div>
+
+<div id="message" class="message">
+  <h2>Congratulations!</h2>
+  <p>You found all the matches!</p>
+  <button id="restartButton">Play Again</button>
+</div>
+
+<script>
+  const gameContainer = document.getElementById('gameContainer');
+  const message = document.getElementById('message');
+  const restartButton = document.getElementById('restartButton');
+  const cardValues = ['A', 'A', 'B', 'B', 'C', 'C', 'D', 'D', 'E', 'E', 'F', 'F', 'G', 'G', 'H', 'H'];
+  let cardsChosen = [];
+  let cardsChosenIds = [];
+  let cardsWon = [];
+  
+  function createBoard() {
+    cardValues.sort(() => 0.5 - Math.random());
+    for (let i = 0; i < cardValues.length; i++) {
+      const card = document.createElement('div');
+      card.classList.add('card');
+      card.setAttribute('data-id', i);
+      card.textContent = '';
+      card.addEventListener('click', flipCard);
+      gameContainer.appendChild(card);
+    }
+  }
+
+  function flipCard() {
+    const cardId = this.getAttribute('data-id');
+    cardsChosen.push(cardValues[cardId]);
+    cardsChosenIds.push(cardId);
+    this.textContent = cardValues[cardId];
+    this.setAttribute('data-flipped', true);
+    this.removeEventListener('click', flipCard);
+    if (cardsChosen.length === 2) {
+      setTimeout(checkForMatch, 500);
+    }
+  }
+
+  function checkForMatch() {
+    const cards = document.querySelectorAll('.card');
+    const [optionOneId, optionTwoId] = cardsChosenIds;
+    const [optionOne, optionTwo] = cardsChosen;
+    if (optionOne === optionTwo) {
+      cards[optionOneId].setAttribute('data-flipped', false);
+      cards[optionTwoId].setAttribute('data-flipped', false);
+      cardsWon.push(cardsChosen);
+    } else {
+      cards[optionOneId].addEventListener('click', flipCard);
+      cards[optionOneId].textContent = '';
+      cards[optionOneId].setAttribute('data-flipped', false);
+      cards[optionTwoId].addEventListener('click', flipCard);
+      cards[optionTwoId].textContent = '';
+      cards[optionTwoId].setAttribute('data-flipped', false);
+    }
+    cardsChosen = [];
+    cardsChosenIds = [];
+    if (cardsWon.length === cardValues.length / 2) {
+      message.style.display = 'block';
+    }
+  }
+
+  restartButton.addEventListener('click', () => {
+    message.style.display = 'none';
+    gameContainer.innerHTML = '';
+    cardsChosen = [];
+    cardsChosenIds = [];
+    cardsWon = [];
+    createBoard();
+  });
+
+  createBoard();
+</script>
+
+</body>
+</html>
